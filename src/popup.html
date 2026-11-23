@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=700, initial-scale=1">
+  <title>be-fit</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="screen" id="screen" data-view="timer">
+    <header class="titlebar">
+      <span class="titlebar__name">be-fit</span>
+      <img class="titlebar__line titlebar__line--1" src="assets/header-line-1.svg" width="35" height="1" alt="">
+      <img class="titlebar__line titlebar__line--2" src="assets/header-line-2.svg" width="20" height="1" alt="">
+      <button class="titlebar__settings" id="settingsBtn" type="button"
+              aria-label="Settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="settingsMenu">
+        <img src="assets/settings.svg" width="37" height="37" alt="">
+      </button>
+    </header>
+
+    <!-- Main Screen: countdown -->
+    <section class="view view--timer" aria-live="off">
+      <p class="countdown" id="countdown">15:00</p>
+      <p class="next">Next: <span id="nextPushups">10</span> Push-Ups</p>
+    </section>
+
+    <!-- Main Screen: time's up -->
+    <section class="view view--due">
+      <p class="due__kicker">Get Off The Screen.</p>
+      <p class="due__task">Do <span id="duePushups">20</span> Push-Ups.</p>
+      <button class="cool-btn cool-btn--fail" id="failBtn" type="button">Fail</button>
+      <button class="cool-btn cool-btn--done" id="doneBtn" type="button">Done</button>
+    </section>
+
+    <p class="quote">"when you think that you are done, you're only 40% in to what your body's capable of doing"</p>
+    <p class="quote-author">-&#x2800;David Goggins</p>
+
+    <!-- be-fit menu: Configure Window -->
+    <div class="menu" id="settingsMenu" role="dialog" aria-label="Configure Window" hidden>
+      <div class="menu__header">
+        <p class="menu__eyebrow">be-fit menu</p>
+        <p class="menu__title">Configure Window</p>
+      </div>
+      <div class="menu__separator"><div class="menu__rule"></div></div>
+
+      <label class="slider-field slider-field--1">
+        <span class="slider-field__label">
+          <span class="slider-field__name">Interval Timer</span>
+          <span class="slider-field__output" data-unit="Minutes" data-range="5-60"></span>
+        </span>
+        <input class="slider" type="range" name="intervalMinutes" min="5" max="60" step="1" value="15">
+      </label>
+
+      <label class="slider-field slider-field--2">
+        <span class="slider-field__label">
+          <span class="slider-field__name">Push-ups</span>
+          <span class="slider-field__output" data-unit="Amount" data-range="1-50"></span>
+        </span>
+        <input class="slider" type="range" name="pushups" min="1" max="50" step="1" value="10">
+      </label>
+
+      <label class="slider-field slider-field--3">
+        <span class="slider-field__label">
+          <span class="slider-field__name">Volume</span>
+          <span class="slider-field__output" data-unit="Percentage" data-range="1-100"></span>
+        </span>
+        <input class="slider" type="range" name="volume" min="1" max="100" step="1" value="50">
+      </label>
+
+      <p class="menu__note">More customizable settings<br>in a full fledged application!<br>coming soon, we hope :)</p>
+
+      <button class="save-btn" id="saveBtn" type="button">Save</button>
+
+      <p class="menu__footer">made with &#x2764;&#xFE0E; 4 the game by raman</p>
+    </div>
+  </main>
+
+  <script src="shared.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
