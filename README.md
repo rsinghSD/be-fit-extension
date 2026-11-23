@@ -14,10 +14,35 @@ Contributions are welcome! Make a pull-request though.
 ## What it does
 
 - **Main Screen** – counts down to your next set (`15:00`, `Next: 10 Push-Ups`).
-- **Configure Window** (gear icon) – interval timer 5–60 min, push-ups 1–50, alarm volume 1–100 %. Hit **Save**.
-- **Time's up** – a 702×302 window pops up with *Get Off The Screen. Do N Push-Ups.*, plays a short alarm at your volume and puts a `!` badge on the icon. Press **Done** or **Fail**; both get logged (total push-ups, done/failed counts), then the next interval starts.
+- **Time's up** – a 702×302 window and/or a push notification: *Do N Push-Ups.* under a rotating prompt (*Get off the screen.*, *Level up your body.*, …). An alarm plays at your volume and a `!` badge appears on the icon. **Done** or **Fail** gets logged, then the next interval starts.
+- **be-fit menu** (gear icon, or the shortcuts from any screen):
 
-The UI is built 1:1 from the Figma frames in *V1 Chrome Extension Start*. Fonts (DM Sans and Inter) are bundled, so there are no network requests.
+  | Shortcut | Page | What it does |
+  | --- | --- | --- |
+  | ⇧S | Total High Score | Push-ups and intervals since you installed, **Share** (or copy) it, **Reset?** |
+  | ⇧Q | Change Interval/Reps | Interval 5–60 min, reps 1–100, loudness 1–100 %, *Enable randomized reps?* |
+  | ⇧C | Change notifications | Popup, Push or both, plus the alarm sound |
+  | ⇧G | Goggins Mode | Hold **SPACE** for 5 s, then again on the last warning |
+  | ⇧A | Change alarm sound | Built-in sounds, or upload your own audio file (5 MB max) |
+  | ⇧I | About/Author | The project, CoreControl and the founder |
+
+- **Randomized Reps Configuration** – a three-step onboarding (max push-ups, comfortable reps, recovery speed). It runs the first time you enable randomized reps or Goggins Mode. Reps are then drawn by the "randomizer + fatigue system" from the design: `minReps = max(comfortable, max × min%)`, `maxReps = max × max%`, with fatigue `max(0.7, 1 − setsToday × 0.05)`.
+- **Goggins Mode** – random intervals (2–20 min) and reps at 70–100 % of your max. Insulting quotes, a 🔥 streak and a siren. Push and popup are both forced on. **Fail** gives you a 60-second break ("Oh you failed? …"), then the alarm goes again.
+
+The UI is built 1:1 from the Figma frames: *V1 Chrome Extension Start*, *V2 full app design*, *Menu Options*, *Randomizer Onboarding*, *Type of quotes* and *Goggins Mode*. Fonts (DM Sans and Inter) are bundled, so there are no network requests.
+
+Browser popups can't be taller than 600px, so the 686px menu scrolls.
+
+### Stand-in assets
+
+The Figma image and icon exports weren't available when V2 was built, so these files are stand-ins. Export the real ones from Figma under the same names and they drop straight in:
+
+| File | Figma layer |
+| --- | --- |
+| `src/assets/v2/author.png` | About/Author → `image 1` (65×65, founder photo) |
+| `src/assets/v2/corecontrol.png` | About/Author → `CORE CONTROL LOGO TRANSPARANT PF HEADERpng 1` (325×118). The stand-in is only the wordmark, without the torso illustration |
+| `src/assets/v2/pushup.svg` | Total High Score → `pushup image transparant` (traced from the be-fit logo) |
+| `src/assets/v2/icon-*.svg` | Menu icons (`alarm-clock`, `bell-ring`, `general`, `info`, the waveform, `dumbbell bg-less`, `Share`). These are [Lucide](https://lucide.dev) icons, except `icon-score.svg`, which is rebuilt from the Figma vectors, and `icon-goggins.svg`, which is hand-drawn |
 
 ## Supported browsers
 
@@ -56,10 +81,13 @@ Open the generated project in `dist/safari-xcode`, run the **be-fit (macOS)** sc
 ```
 src/
   manifest.json   base manifest (Chromium); scripts/build.mjs derives Firefox/Safari
-  background.js   interval timer (alarms), time's-up window, Done/Fail log
-  shared.js       browser API shim + settings defaults/ranges
-  popup.html/css/js  Main Screen, time's-up screen, Configure Window
-  assets/         SVGs exported from Figma
+  background.js   interval timer (alarms), reps/intervals, popup + push alerts, Done/Fail log
+  shared.js       browser API shim, settings, rep randomizer, prompts and Goggins quotes
+  sound.js        generated alarm sounds (Web Audio) + custom sound playback
+  offscreen.*     Chromium only: plays the alarm when only a push notification is shown
+  popup.html/css/js  Main Screen, time's-up and Goggins screens
+  menu.css/js     be-fit menu and all its pages
+  assets/         SVGs exported from Figma; assets/v2 holds the V2 icons and images
   fonts/          DM Sans + Inter (OFL)
   icons/          toolbar icons
 scripts/build.mjs per-browser builds
@@ -67,4 +95,4 @@ scripts/build.mjs per-browser builds
 
 ## Credits
 
-Fonts: [DM Sans](https://fonts.google.com/specimen/DM+Sans) and [Inter](https://fonts.google.com/specimen/Inter), SIL Open Font License. Icons from https://www.flaticon.com
+Fonts: [DM Sans](https://fonts.google.com/specimen/DM+Sans) and [Inter](https://fonts.google.com/specimen/Inter), SIL Open Font License. Settings icon from https://www.flaticon.com. Stand-in menu icons from [Lucide](https://lucide.dev), ISC License (`src/assets/v2/LUCIDE-LICENSE.txt`).

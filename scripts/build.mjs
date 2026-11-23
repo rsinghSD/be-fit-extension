@@ -24,7 +24,9 @@ const targets = {
 
   firefox: (m) => ({
     ...m,
-    background: { scripts: ["shared.js", "background.js"] },
+    permissions: m.permissions.filter((p) => p !== "offscreen"),
+    // an event page can play the alarm itself, so sound.js loads here too
+    background: { scripts: ["shared.js", "sound.js", "background.js"] },
     browser_specific_settings: {
       gecko: {
         id: "be-fit@rsinghsd.github.io",
@@ -34,10 +36,10 @@ const targets = {
     },
   }),
 
-  // Safari has no notifications API; the reminder window covers it.
+  // Safari has no notifications or offscreen API; the reminder window covers both.
   safari: (m) => ({
     ...m,
-    permissions: m.permissions.filter((p) => p !== "notifications"),
+    permissions: m.permissions.filter((p) => p !== "notifications" && p !== "offscreen"),
   }),
 };
 

@@ -1,199 +1,174 @@
 /*
- * be-fit popup. Used twice:
- *   - as the toolbar popup (popup.html)
- *   - as the time's-up window the background opens (popup.html?view=reminder)
+ * be-fit popup screens. The same page is used as:
+ *   - the toolbar popup               popup.html
+ *   - the time's-up window            popup.html?view=reminder
+ *   - a tab (e.g. to pick a sound)    popup.html?tab=1&page=sound
+ * menu.js adds the be-fit menu on top of this.
  */
-/* global ext, loadState, clampSetting, DEFAULT_SETTINGS */
+/* global ext, loadState, playSound, stopSound, soundCtx, DEFAULT_SETTINGS, DEFAULT_RRA */
 
-const isReminder = new URLSearchParams(location.search).get("view") === "reminder";
-const MENU_EXTRA_HEIGHT = 107; // settings panel hangs 107px below the 302px screen
+const params = new URLSearchParams(location.search);
+const isReminder = params.get("view") === "reminder";
+const isTab = params.has("tab");
 
 const $ = (id) => document.getElementById(id);
 const screenEl = $("screen");
-const countdownEl = $("countdown");
-const nextPushupsEl = $("nextPushups");
-const duePushupsEl = $("duePushups");
-const settingsBtn = $("settingsBtn");
-const menu = $("settingsMenu");
-const sliders = [...menu.querySelectorAll(".slider")];
 
-let state = { settings: { ...DEFAULT_SETTINGS }, endsAt: null, dueSince: null };
+const befit = {
+  state: { settings: { ...DEFAULT_SETTINGS }, rra: { ...DEFAULT_RRA }, stats: {}, task: null },
+  isReminder,
+  isTab,
+  listeners: [],
+  onChange(fn) {
+    this.listeners.push(fn);
+  },
+  send(message) {
+    return ext.runtime.sendMessage(message);
+  },
+};
+globalThis.befit = befit;
+
+if (isTab) document.body.classList.add("in-tab");
 
 /* ---------- rendering ---------- */
 
-function formatRemaining(ms) {
+function formatClock(ms) {
   const total = Math.max(0, Math.ceil(ms / 1000));
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
-function renderCountdown() {
-  const remaining = state.endsAt
-    ? state.endsAt - Date.now()
-    : state.settings.intervalMinutes * 60 * 1000;
-  const text = formatRemaining(remaining);
-  if (countdownEl.textContent !== text) countdownEl.textContent = text;
+function setText(el, text) {
+  if (el.textContent !== String(text)) el.textContent = text;
+}
+
+function currentView() {
+  const { dueSince, failedUntil } = befit.state;
+  if (dueSince && failedUntil && failedUntil > Date.now()) return "failed";
+  if (dueSince) return "due";
+  return "timer";
+}
+
+function renderClock() {
+  const { endsAt, settings, failedUntil } = befit.state;
+  const remaining = endsAt ? endsAt - Date.now() : settings.intervalMinutes * 60 * 1000;
+  setText($("countdown"), formatClock(remaining));
+  if (failedUntil) setText($("failedTime"), formatClock(failedUntil - Date.now()));
+  const view = currentView();
+  if (screenEl.dataset.view !== view) render();
 }
 
 function render() {
-  const due = Boolean(state.dueSince);
-  screenEl.dataset.view = due ? "due" : "timer";
-  nextPushupsEl.textContent = state.settings.pushups;
-  duePushupsEl.textContent = state.settings.pushups;
-  document.title = due ? "be-fit – Get Off The Screen." : "be-fit";
-  renderCountdown();
+  const { settings, task, stats } = befit.state;
+  const goggins = settings.goggins;
+  const view = currentView();
+  const pushups = task?.pushups ?? settings.pushups;
+
+  screenEl.dataset.view = view;
+  screenEl.classList.toggle("is-goggins", goggins);
+
+  setText($("nextLabel"), goggins ? "Task:" : "Next:");
+  setText($("nextPushups"), pushups);
+  setText($("duePushups"), pushups);
+  setText($("failedPushups"), pushups);
+  setText($("streakCount"), stats.streak || 0);
+  $("streak").classList.toggle("is-empty", !stats.streak);
+  setText($("runningQuote"), task?.runningQuote || "");
+
+  const kicker = $("dueKicker");
+  setText(kicker, task?.prompt || "get off the screen.");
+  kicker.classList.remove("is-wide");
+  if (view === "due" && kicker.offsetWidth > 298) kicker.classList.add("is-wide");
+
+  document.title = view === "timer" ? "be-fit" : "be-fit – Get Off The Screen.";
+  renderClock();
 }
 
 async function refresh() {
-  state = await loadState();
+  befit.state = await loadState();
   render();
-  if (isReminder && !state.dueSince) window.close();
+  for (const fn of [...befit.listeners]) fn(befit.state);
+  if (isReminder && !befit.state.dueSince) window.close();
 }
+befit.refresh = refresh;
 
-/* ---------- settings menu ---------- */
-
-const outputTimers = new WeakMap();
-
-function setOutput(slider, showValue) {
-  const output = slider.closest(".slider-field").querySelector(".slider-field__output");
-  const { unit, range } = output.dataset;
-  output.textContent = `${unit} ${showValue ? slider.value : range}`;
-}
-
-function fillSliders() {
-  for (const slider of sliders) {
-    slider.value = state.settings[slider.name];
-    setOutput(slider, false);
-  }
-}
-
-async function resizeReminderWindow(extraHeight) {
-  if (!isReminder || !ext.windows?.getCurrent) return;
-  try {
-    const win = await ext.windows.getCurrent();
-    const chromeW = window.outerWidth - window.innerWidth;
-    const chromeH = window.outerHeight - window.innerHeight;
-    await ext.windows.update(win.id, {
-      width: 702 + chromeW,
-      height: 302 + extraHeight + chromeH,
-    });
-  } catch {
-    /* resizing is best effort */
-  }
-}
-
-function setMenuOpen(open) {
-  if (open) fillSliders();
-  menu.hidden = !open;
-  document.body.classList.toggle("menu-open", open);
-  settingsBtn.setAttribute("aria-expanded", String(open));
-  resizeReminderWindow(open ? MENU_EXTRA_HEIGHT : 0);
-  if (open) sliders[0].focus({ preventScroll: true });
-}
-
-settingsBtn.addEventListener("click", (event) => {
-  event.stopPropagation();
-  setMenuOpen(menu.hidden);
-});
-
-document.addEventListener("click", (event) => {
-  if (!menu.hidden && !menu.contains(event.target)) setMenuOpen(false);
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !menu.hidden) {
-    setMenuOpen(false);
-    settingsBtn.focus();
-  }
-});
-
-for (const slider of sliders) {
-  // Show the picked value while sliding, then fall back to the range label from the design.
-  slider.addEventListener("input", () => {
-    setOutput(slider, true);
-    clearTimeout(outputTimers.get(slider));
-    outputTimers.set(slider, setTimeout(() => setOutput(slider, false), 1200));
-  });
-}
-
-menu.querySelector('[name="volume"]').addEventListener("change", (event) => {
-  playAlarm(Number(event.target.value), 1);
-});
-
-$("saveBtn").addEventListener("click", async () => {
-  const next = { ...state.settings };
-  for (const slider of sliders) next[slider.name] = clampSetting(slider.name, slider.value);
-  const intervalChanged = next.intervalMinutes !== state.settings.intervalMinutes;
-
-  await ext.storage.local.set({ settings: next });
-  if (intervalChanged && !state.dueSince) await ext.runtime.sendMessage({ type: "restart" });
-  setMenuOpen(false);
-  await refresh();
-});
-
-/* ---------- Fail / Done ---------- */
+/* ---------- Fail / Done / Ready ---------- */
 
 async function complete(result) {
-  await ext.runtime.sendMessage({ type: "complete", result });
-  if (isReminder) window.close();
-  else await refresh();
+  stopSound();
+  await befit.send({ type: "complete", result });
+  await refresh();
+  if (isReminder && !befit.state.dueSince) window.close();
 }
 
 $("failBtn").addEventListener("click", () => complete("fail"));
 $("doneBtn").addEventListener("click", () => complete("done"));
+$("readyBtn").addEventListener("click", async () => {
+  await befit.send({ type: "ready" });
+  await refresh();
+});
 
-/* ---------- alarm sound (generated, no audio file needed) ---------- */
+/* ---------- reminder window ---------- */
 
-let audioCtx;
-
-function playAlarm(volumePercent, beeps = 3) {
+befit.resizeWindow = async function resizeWindow(height = 302) {
+  if (!isReminder || !ext.windows?.getCurrent) return;
   try {
-    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    const peak = Math.max(0.0001, (volumePercent / 100) * 0.6);
-    const start = audioCtx.currentTime + 0.05;
-    for (let i = 0; i < beeps; i++) {
-      const t = start + i * 0.28;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "square";
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(peak, t + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(t);
-      osc.stop(t + 0.2);
-    }
+    const win = await ext.windows.getCurrent();
+    await ext.windows.update(win.id, {
+      width: 702 + (window.outerWidth - window.innerWidth),
+      height: height + (window.outerHeight - window.innerHeight),
+    });
   } catch {
-    /* audio is optional */
+    /* resizing is best effort */
   }
-}
+};
+
+befit.playAlarm = async function playAlarm(kindOverride, volumeOverride) {
+  const { settings } = befit.state;
+  const { customSound } = await ext.storage.local.get("customSound");
+  const useCustom = !kindOverride && settings.customSoundOn && !settings.goggins && customSound?.dataUrl;
+  const kind = kindOverride || (settings.goggins ? "siren" : settings.sound);
+  try {
+    await playSound(kind, volumeOverride ?? settings.volume, useCustom ? customSound.dataUrl : null);
+  } catch {
+    /* blocked until the page is touched */
+  }
+};
 
 /* ---------- boot ---------- */
 
 ext.storage.onChanged.addListener((changes, area) => {
-  if (area === "local" && ("endsAt" in changes || "dueSince" in changes || "settings" in changes)) {
-    refresh();
-  }
+  if (area !== "local") return;
+  const keys = ["endsAt", "dueSince", "failedUntil", "settings", "rra", "task", "stats"];
+  if (keys.some((key) => key in changes)) refresh();
 });
 
-setInterval(renderCountdown, 250);
+ext.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === "replay" && isReminder) befit.playAlarm();
+  return false;
+});
+
+setInterval(renderClock, 250);
 
 (async () => {
   await refresh();
   try {
-    await ext.runtime.sendMessage({ type: "ensure" });
+    await befit.send({ type: "ensure" });
   } catch {
     /* background may still be starting */
   }
   await refresh();
 
   if (isReminder) {
-    await resizeReminderWindow(0);
-    playAlarm(state.settings.volume);
-    // Browsers may block sound until the page is touched; retry on first interaction.
-    document.addEventListener("pointerdown", () => audioCtx?.resume(), { once: true });
+    await befit.resizeWindow();
+    befit.playAlarm();
+    // Browsers may block sound until the page is touched: retry once on the first click.
+    const retry = (event) => {
+      if (event.target.closest("button")) return;
+      document.removeEventListener("pointerdown", retry);
+      if (typeof soundCtx === "undefined" || soundCtx?.state !== "running") befit.playAlarm();
+    };
+    document.addEventListener("pointerdown", retry);
   }
 })();

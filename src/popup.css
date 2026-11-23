@@ -1,10 +1,9 @@
 /*
- * be-fit popup, built 1:1 from the Figma "V1 Chrome Extension Start" frames
- * (Main Screen 153:508, time's-up screen 153:526, Configure Window 153:809).
+ * be-fit popup screens, built 1:1 from the Figma frames
+ * (Main Screen 153:508, time's-up 153:526, Goggins Mode 38:395).
  * The screen's 1px stroke sits outside its 700x300 fill in Figma, so the page
  * is 702x302 and children use the Figma coordinates as-is. Boxes with an
- * inside stroke offset their children by -1px; the menu's stroke is drawn as
- * an inset shadow because Figma strokes take no layout space.
+ * inside stroke offset their children by -1px. The menu lives in menu.css.
  */
 
 @font-face {
@@ -38,12 +37,15 @@
   --border: #ffffff;
   --text: #ffffff;
   --text-tertiary: #b3b3b3;
+  --text-secondary: #757575;
   --text-on-neutral: #f3f3f3;
   --text-on-brand: #f5f5f5;
+  --text-item: #ebffee;
   --titlebar-bg: rgba(187, 187, 187, 0.1);
   --menu-border: #d9d9d9;
-  --slider-track: #444444;
-  --slider-knob: #f5f5f5;
+  --field-border: #3d3d3d;
+  --track: #444444;
+  --knob: #f5f5f5;
   --muted: rgba(255, 255, 255, 0.35);
   --menu-shadow: 0 4px 4px -1px rgba(12, 12, 13, 0.1), 0 4px 4px -1px rgba(12, 12, 13, 0.05);
 
@@ -74,9 +76,19 @@ body {
   text-rendering: geometricPrecision;
 }
 
-/* The settings panel hangs below the 300px screen, like in the design. */
+/* The menu hangs below the 302px screen, like in the design (popups max out at 600px). */
 body.menu-open {
-  height: 409px;
+  height: var(--body-h, 409px);
+}
+
+/* Opened as a tab (e.g. to pick a sound file): centre the popup. */
+body.in-tab {
+  width: auto;
+  height: auto;
+  min-height: 100vh;
+  display: grid;
+  place-items: start center;
+  padding-top: 40px;
 }
 
 p {
@@ -94,7 +106,9 @@ button {
 }
 
 button:focus-visible,
-.slider:focus-visible {
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
   outline: 1px solid var(--text-on-brand);
   outline-offset: 2px;
 }
@@ -137,6 +151,23 @@ button:focus-visible,
   white-space: nowrap;
 }
 
+/* "+ goggins mode" (Figma 48:391) */
+.titlebar__tag {
+  display: none;
+  position: absolute;
+  left: 379px;
+  top: 15px;
+  font-family: var(--font-body);
+  font-size: 5.5px;
+  line-height: 9px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.screen.is-goggins[data-view="timer"] .titlebar__tag {
+  display: block;
+}
+
 .titlebar__line {
   position: absolute;
   display: block;
@@ -175,6 +206,10 @@ button:focus-visible,
   transform: rotate(30deg);
 }
 
+.screen[data-view="failed"] .titlebar__settings {
+  display: none;
+}
+
 /* ---------- shared text styles ---------- */
 
 .countdown,
@@ -182,20 +217,29 @@ button:focus-visible,
 .quote,
 .quote-author,
 .due__kicker,
-.due__task {
+.due__task,
+.running-quote,
+.streak,
+.failed__msg,
+.failed__time,
+.failed__task {
   position: absolute;
   font-family: var(--font-display);
   font-optical-sizing: auto; /* matches the Figma render */
-  text-transform: capitalize;
   color: var(--text);
   overflow-wrap: break-word;
 }
 
 /* ---------- views ---------- */
 
-.screen[data-view="timer"] .view--due,
-.screen[data-view="due"] .view--timer {
+.view {
   display: none;
+}
+
+.screen[data-view="timer"] .view--timer,
+.screen[data-view="due"] .view--due,
+.screen[data-view="failed"] .view--failed {
+  display: block;
 }
 
 /* Main Screen 153:508 */
@@ -214,7 +258,6 @@ button:focus-visible,
 .next {
   left: 210px;
   top: 246px;
-  width: 298px;
   height: 21px;
   font-weight: 700;
   font-size: 32px;
@@ -230,6 +273,7 @@ button:focus-visible,
   font-weight: 700;
   font-size: 6px;
   line-height: 17.189px;
+  text-transform: capitalize;
 }
 
 .quote-author {
@@ -244,16 +288,81 @@ button:focus-visible,
   white-space: nowrap;
 }
 
-/* Time's-up screen 153:526 */
+/* Goggins Mode main screen (48:376): streak, line and running quote */
+
+.streak,
+.running-line,
+.running-quote {
+  display: none;
+}
+
+.screen.is-goggins .streak,
+.screen.is-goggins .running-line,
+.screen.is-goggins .running-quote {
+  display: block;
+}
+
+.screen.is-goggins .streak.is-empty {
+  display: none;
+}
+
+.screen.is-goggins[data-view="timer"] .quote,
+.screen.is-goggins[data-view="timer"] .quote-author {
+  display: none;
+}
+
+.streak {
+  left: 501px;
+  top: 253px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.streak span {
+  font-size: 10px;
+}
+
+.running-line {
+  position: absolute;
+  left: 288px;
+  top: 281px;
+  width: 124px;
+  height: 1px;
+  background: var(--text);
+}
+
+.running-quote {
+  left: 205px;
+  top: 285px;
+  width: 300px;
+  font-weight: 700;
+  font-size: 7.5px;
+  line-height: 12px;
+  text-align: center;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* Time's-up screen 153:526 and "Push-Up Prompts" */
 
 .due__kicker {
   left: 210px;
   top: 109px;
-  width: 298px;
   height: 21px;
   font-weight: 700;
   font-size: 16px;
   line-height: 17.189px;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* long prompts are centred on the screen like in the prompt frames */
+.due__kicker.is-wide {
+  left: 354px;
+  transform: translateX(-50%);
 }
 
 .due__task {
@@ -269,16 +378,11 @@ button:focus-visible,
 
 /* "c o o l button" */
 
-.cool-btn,
-.save-btn {
+.cool-btn {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-}
-
-.cool-btn {
   position: absolute;
-  top: 193px;
   width: 70px;
   height: 22px;
   padding-top: 4px;
@@ -289,208 +393,123 @@ button:focus-visible,
   line-height: 13px;
   color: var(--text-on-brand);
   text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cool-btn:hover {
+  filter: brightness(1.3);
+}
+
+.cool-btn:disabled {
+  cursor: default;
+  filter: none;
 }
 
 .cool-btn--fail {
   left: 301px;
+  top: 193px;
 }
 
 .cool-btn--done {
   left: 390px;
+  top: 193px;
 }
 
-.cool-btn:hover,
-.save-btn:hover {
-  filter: brightness(1.3);
+/* Goggins Mode moves the buttons (65:601, 65:598) and the clock (48:386) */
+.screen.is-goggins .cool-btn--fail {
+  left: 275px;
+  top: 215px;
 }
 
-/* ---------- be-fit menu / Configure Window 153:809 ---------- */
+.screen.is-goggins .cool-btn--done {
+  left: 364px;
+  top: 215px;
+}
 
-.menu {
+.screen.is-goggins .countdown {
+  left: 213px;
+  transform: none;
+}
+
+/* Goggins Mode: failed (65:632) */
+
+.failed {
   position: absolute;
-  left: 403px;
-  top: 3px;
-  z-index: 10;
-  width: 297px;
-  height: 405px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 8px;
+  left: 84px;
+  top: 56px;
+  width: 522px;
+  height: 219px;
   background: var(--bg);
   border-radius: 8px;
-  /* Figma strokes take no layout space, so the 1px border is an inset shadow */
   box-shadow: inset 0 0 0 1px var(--menu-border), var(--menu-shadow);
-  opacity: 0.96;
+}
+
+.failed__msg {
+  left: 60px;
+  top: 25px;
+  width: 406px;
+  font-weight: 900;
+  font-size: 19.5px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.failed__time {
+  left: 261px;
+  top: 104px;
+  transform: translateX(-50%);
+  font-weight: 500;
+  font-size: 37px;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.failed__task {
+  left: 196px;
+  top: 147px;
+  width: 141px;
+  font-weight: 900;
+  font-size: 19.5px;
+  line-height: 26px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.failed__ready {
+  left: 228px;
+  top: 179px;
+}
+
+.screen[data-view="failed"] .quote,
+.screen[data-view="failed"] .quote-author {
+  opacity: 0.3;
+}
+
+/* small status line used by a few menu pages */
+.toast {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
   font-family: var(--font-body);
-}
-
-.menu[hidden] {
-  display: none;
-}
-
-.menu__header {
-  padding: 8px 16px 4px;
-  line-height: 1.4;
-}
-
-.menu__eyebrow {
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
   color: var(--text-tertiary);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
 }
 
-.menu__title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-on-neutral);
-}
-
-.menu__separator {
-  padding: 8px 16px;
-}
-
-.menu__rule {
-  height: 1px;
-  background: var(--menu-border);
-}
-
-/* Slider Field */
-
-.slider-field {
-  position: absolute;
-  left: 23px;
-  width: 240px;
-  display: block;
-}
-
-.slider-field--1 {
-  top: 86px;
-}
-
-.slider-field--2 {
-  top: 152px;
-}
-
-.slider-field--3 {
-  top: 212px;
-}
-
-.slider-field__label {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  line-height: 1.4;
-  color: var(--text);
-}
-
-.slider-field__name {
-  flex: 1 0 0;
-  min-width: 1px;
-  font-size: 16px;
-}
-
-.slider-field__output {
-  font-size: 14px;
-  text-align: right;
-  white-space: pre;
-  font-feature-settings: "calt" 0; /* keep "5-60" as in the design (no spaced dash) */
-}
-
-/* Native range input styled as the Figma slider: 8px track, 16px knob. */
-
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
-  display: block;
-  width: 100%;
-  height: 16px;
-  margin: 8px 0 0;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.slider::-webkit-slider-runnable-track {
-  height: 8px;
-  background: var(--slider-track);
-  border-radius: 9999px;
-  border: 0;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  margin-top: -4px;
-  background: var(--slider-knob);
-  border: 0;
-  border-radius: 9999px;
-}
-
-.slider::-moz-range-track {
-  height: 8px;
-  background: var(--slider-track);
-  border-radius: 9999px;
-  border: 0;
-}
-
-.slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: var(--slider-knob);
-  border: 0;
-  border-radius: 9999px;
-}
-
-.slider::-moz-focus-outer {
-  border: 0;
-}
-
-.menu__note,
-.menu__footer {
-  position: absolute;
-  font-style: italic;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--muted);
-  text-align: center;
-  opacity: 0.96;
-}
-
-.menu__note {
-  left: 70px;
-  top: 265px;
-  width: 158px;
-  white-space: nowrap;
-}
-
-.menu__footer {
-  left: 31px;
-  top: 381px;
-  width: 228px;
-  white-space: nowrap;
-}
-
-.save-btn {
-  position: absolute;
-  left: 98px;
-  top: 335px;
-  width: 101px;
-  height: 31.743px;
-  padding-top: 7px;
-  background: url("assets/button-save.svg") center / 100% 100% no-repeat;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 16px;
-  color: var(--text-on-brand);
-  text-align: center;
-  opacity: 0.96;
+.toast.is-visible {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .titlebar__settings {
+  .titlebar__settings,
+  .toast {
     transition: none;
   }
 }
