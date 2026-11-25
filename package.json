@@ -1,0 +1,14 @@
+{
+  "name": "be-fit-extension",
+  "version": "1.0.0",
+  "description": "A free open-source browser extension that reminds everyone staring at a screen to stay fit and drop 20.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:chromium": "node scripts/build.mjs chromium",
+    "build:firefox": "node scripts/build.mjs firefox",
+    "build:safari": "node scripts/build.mjs safari",
+    "safari:xcode": "node scripts/build.mjs safari && xcrun safari-web-extension-converter dist/safari --project-location dist/safari-xcode --app-name be-fit --bundle-identifier io.github.rsinghsd.befit --swift --copy-resources --no-open"
+  }
+}

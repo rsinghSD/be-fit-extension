@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=702, initial-scale=1">
+  <title>be-fit</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <main class="screen" id="screen" data-view="timer">
+    <header class="titlebar">
+      <span class="titlebar__name">be-fit</span>
+      <span class="titlebar__tag">+ goggins mode</span>
+      <img class="titlebar__line titlebar__line--1" src="assets/header-line-1.svg" width="35" height="1" alt="">
+      <img class="titlebar__line titlebar__line--2" src="assets/header-line-2.svg" width="20" height="1" alt="">
+      <button class="titlebar__settings" id="settingsBtn" type="button"
+              aria-label="Menu" aria-haspopup="dialog" aria-expanded="false" aria-controls="menu">
+        <img src="assets/settings.svg" width="37" height="37" alt="">
+      </button>
+    </header>
+
+    <!-- Main Screen: countdown (normal + Goggins Mode) -->
+    <section class="view view--timer">
+      <p class="countdown" id="countdown">15:00</p>
+      <p class="next"><span id="nextLabel">Next:</span> <span id="nextPushups">10</span> Push-Ups</p>
+      <p class="streak" id="streak">🔥 <span>x <span id="streakCount">3</span></span></p>
+      <span class="running-line"></span>
+      <p class="running-quote" id="runningQuote"></p>
+    </section>
+
+    <!-- Time's up -->
+    <section class="view view--due">
+      <p class="due__kicker" id="dueKicker">Get Off The Screen.</p>
+      <p class="due__task">Do <span id="duePushups">20</span> Push-Ups.</p>
+      <button class="cool-btn cool-btn--fail" id="failBtn" type="button">Fail</button>
+      <button class="cool-btn cool-btn--done" id="doneBtn" type="button">Done</button>
+    </section>
+
+    <!-- Goggins Mode: failed -->
+    <section class="view view--failed">
+      <div class="failed">
+        <p class="failed__msg">Oh you failed? Boo-fucking hoo-hoo. I will give you a minute to gather yourself and you’d damn better again.</p>
+        <p class="failed__time" id="failedTime">01:00</p>
+        <p class="failed__task"><span id="failedPushups">40</span> pushups</p>
+        <button class="cool-btn failed__ready" id="readyBtn" type="button">Ready</button>
+      </div>
+    </section>
+
+    <p class="quote">"when you think that you are done, you're only 40% in to what your body's capable of doing"</p>
+    <p class="quote-author">-&#x2800;David Goggins</p>
+
+    <!-- ================= be-fit menu ================= -->
+    <div class="menu" id="menu" role="dialog" aria-label="be-fit menu" hidden>
+
+      <!-- Menu -->
+      <section class="page" data-page="home" style="--h: 686px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon" src="assets/v2/icon-dumbbell.svg" alt="" style="left:106px;top:17px">
+        <p class="page__title page__title--2l">customize your extension the way you want</p>
+        <div class="page__rule" style="top:92px"></div>
+
+        <button class="mitem" data-go="score" data-key="S" style="--t:112.6px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-score.svg" alt="">
+          <span class="mitem__title">Total High Score</span><span class="mitem__key">⇧S</span>
+          <span class="mitem__desc">check your total push-ups, and brag about it</span>
+        </button>
+        <button class="mitem" data-go="interval" data-key="Q" style="--t:202.6px; --it:1.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-interval.svg" alt="">
+          <span class="mitem__title">Change Interval/Reps</span><span class="mitem__key">⇧Q</span>
+          <span class="mitem__desc">change the timer to every 15, 30 or 60 minutes</span>
+        </button>
+        <button class="mitem" data-go="notifications" data-key="C" style="--t:292.6px; --it:1.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-notifications.svg" alt="">
+          <span class="mitem__title">Change notifications</span><span class="mitem__key">⇧C</span>
+          <span class="mitem__desc">how would you like to be notified?</span>
+        </button>
+        <div class="page__rule" style="top:391px"></div>
+        <button class="mitem mitem--goggins" data-go="goggins" data-key="G" style="--t:413.6px; --it:3.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-goggins.svg" alt="">
+          <span class="mitem__title">Goggins Mode</span><span class="mitem__key">⇧G</span>
+          <span class="mitem__desc">except a blow of discipline.</span>
+        </button>
+        <button class="mitem mitem--sound" data-go="sound" data-key="A" style="--t:499.6px; --it:0.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-sound.svg" alt="">
+          <span class="mitem__title">Change alarm sound</span><span class="mitem__key">⇧A</span>
+          <span class="mitem__desc">any .mp3 file is supported! be creative about it :)</span>
+        </button>
+        <button class="mitem" data-go="about" data-key="I" style="--t:589.6px; --it:0.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-about.svg" alt="">
+          <span class="mitem__title">About/Author</span><span class="mitem__key">⇧I</span>
+          <span class="mitem__desc">checkout the guy behind this extension!</span>
+        </button>
+        <p class="home__footer">This menu has Super Cow Powers.</p>
+      </section>
+
+      <!-- Menu (Goggins Mode) -->
+      <section class="page" data-page="home-goggins" style="--h: 579px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon" src="assets/v2/icon-dumbbell.svg" alt="" style="left:106px;top:17px">
+        <p class="page__title page__title--2l">customize your extension the way you want</p>
+        <div class="page__rule" style="top:92px"></div>
+
+        <button class="mitem" data-go="score" data-key="S" style="--t:112.6px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-score.svg" alt="">
+          <span class="mitem__title">Total High Score</span><span class="mitem__key">⇧S</span>
+          <span class="mitem__desc">show off your damn discipline soldier.</span>
+        </button>
+        <button class="mitem" data-go="notifications" data-key="C" style="--t:202.6px; --it:3.4px; --ix:3px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-notifications.svg" alt="">
+          <span class="mitem__title">Change notifications</span><span class="mitem__key">⇧C</span>
+          <span class="mitem__desc">how would you like to be notified?</span>
+        </button>
+        <div class="page__rule" style="top:301px"></div>
+        <button class="mitem" data-go="goggins-off" data-key="G" style="--t:324.6px; --it:2.4px; --ix:5px" type="button">
+          <img class="mitem__icon mitem__icon--narrow" src="assets/v2/icon-goggins.svg" alt="">
+          <span class="mitem__title">Disable Goggins Mode?</span><span class="mitem__key">⇧G</span>
+          <span class="mitem__desc">you’re such a fucking pussy if you disable goggins mode.</span>
+        </button>
+        <button class="mitem" data-go="sound" data-key="A" style="--t:409.6px; --it:7.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-sound.svg" alt="">
+          <span class="mitem__title">Change alarm sound</span><span class="mitem__key">⇧A</span>
+          <span class="mitem__desc">only default noises approved by the creator of Goggins Mode.</span>
+        </button>
+        <button class="mitem" data-go="about" data-key="I" style="--t:499.6px; --it:2.4px" type="button">
+          <img class="mitem__icon" src="assets/v2/icon-about.svg" alt="">
+          <span class="mitem__title">About/Author</span><span class="mitem__key">⇧I</span>
+          <span class="mitem__desc">checkout the guy behind this extension!</span>
+        </button>
+      </section>
+
+      <!-- Total High Score -->
+      <section class="page" data-page="score" style="--h: 405px">
+        <img class="page__mark" src="assets/v2/icon-score.svg" alt="" style="left:134px;top:2px;width:260px;height:260px;transform:rotate(25deg)">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon" src="assets/v2/icon-score.svg" alt="" style="left:112px;top:16px">
+        <p class="page__title">Total High Score</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:200px;top:30px">Back</button>
+        <div class="page__rule"></div>
+
+        <p class="score__since">since <span id="scoreSince">15 october 2025</span><br>you’ve done..</p>
+        <img class="score__figure" src="assets/v2/pushup.svg" alt="">
+        <p class="score__totals"><span id="scorePushups">0</span> push-ups.<br><span id="scoreIntervals">0</span> intervals.</p>
+        <p class="score__brag">that definitely shows a lot of discipline. Share it!</p>
+        <button class="score__share" id="shareBtn" type="button" aria-label="Share your score">
+          <img src="assets/v2/icon-share.svg" alt="">
+        </button>
+        <button class="score__reset" id="resetBtn" type="button">Reset?</button>
+        <p class="toast" id="scoreToast" role="status"></p>
+      </section>
+
+      <!-- Change Interval/Reps -->
+      <section class="page" data-page="interval" style="--h: 405px">
+        <img class="page__mark" src="assets/v2/icon-interval.svg" alt="" style="left:131px;top:-2px;width:264px;height:264px;transform:rotate(12deg)">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon" src="assets/v2/icon-interval.svg" alt="" style="left:114px;top:19px">
+        <p class="page__title">Change Interval/Reps</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:205px;top:27px">Back</button>
+        <div class="page__rule"></div>
+
+        <label class="diy" style="top:94px">
+          <span class="diy__label">Interval every .. minutes</span><span class="diy__range">5-60</span>
+          <input class="diy__input" type="range" name="intervalMinutes" min="5" max="60" step="1" value="15">
+          <span class="diy__value" data-suffix=""></span>
+        </label>
+        <label class="diy" id="repsField" style="top:183px">
+          <span class="diy__label">Reps per interval</span><span class="diy__range">1-100</span>
+          <input class="diy__input" type="range" name="pushups" min="1" max="100" step="1" value="10">
+          <span class="diy__value" data-suffix=""></span>
+        </label>
+        <label class="switch-field" style="top:255px">
+          <span class="switch-field__label">Enable randomized reps?</span>
+          <input class="switch" type="checkbox" name="randomReps" role="switch">
+        </label>
+        <label class="diy" style="top:316px">
+          <span class="diy__label">Loudness Timer</span><span class="diy__range">1-100%</span>
+          <input class="diy__input" type="range" name="volume" min="1" max="100" step="1" value="50">
+          <span class="diy__value" data-suffix="%"></span>
+        </label>
+      </section>
+
+      <!-- Change Notifications -->
+      <section class="page" data-page="notifications" style="--h: 405px">
+        <img class="page__mark" src="assets/v2/icon-notifications.svg" alt="" style="left:91px;top:4px;width:200px;height:200px;transform:rotate(-28deg)">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon" src="assets/v2/icon-notifications.svg" alt="" style="left:114px;top:18px">
+        <p class="page__title">Change Notifications</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:203px;top:29px">Back</button>
+        <div class="page__rule"></div>
+
+        <label class="select-field" style="top:90px">
+          <span class="select-field__label">Notification Type</span>
+          <select class="select" name="notifyType"></select>
+        </label>
+        <label class="select-field" style="top:175px">
+          <span class="select-field__label">Notification Sound</span>
+          <select class="select" name="sound"></select>
+        </label>
+        <p class="notif__agent">Get notifications without a browser!<br>Install the be-fit agent<br>(Light-weight, syncs with browser<br>and uses minimal CPU/Ram)</p>
+        <button class="cool-btn notif__setup" id="setupAgentBtn" type="button">Setup Agent</button>
+        <p class="toast" id="notifToast" role="status"></p>
+      </section>
+
+      <!-- Goggins Mode -->
+      <section class="page" data-page="goggins" style="--h: 405px">
+        <img class="page__mark" src="assets/v2/icon-goggins.svg" alt="" style="left:170px;top:2px;width:240px;height:240px;transform:rotate(20deg)">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon page__icon--narrow" src="assets/v2/icon-goggins.svg" alt="" style="left:110px;top:18px">
+        <p class="page__title">Goggins Mode</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:203px;top:29px">Back</button>
+        <div class="page__rule"></div>
+
+        <div class="goggins__text">
+          <p>Goggins Mode is inspired by the natural-being: “David Goggins”.</p>
+          <p>By enabling this mode you will enable a more unforgiven experience using the be-fit interval timer and it will affect the following items:</p>
+          <ul>
+            <li>Alarm Sound</li>
+            <li>Randomized Reps Algorithm/ Change Reps/Interval</li>
+            <li>Notification Type</li>
+            <li>Message boxes</li>
+            <li>Quotes</li>
+            <li>Cuss words added</li>
+          </ul>
+          <p>If you are fine with the following changes, hold <button class="hold" type="button" data-hold="goggins-1">SPACE</button> for 5 seconds to enable Goggins Mode.</p>
+        </div>
+      </section>
+
+      <!-- Goggins Mode: last warning -->
+      <section class="page" data-page="goggins-confirm" style="--h: 215px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon page__icon--narrow" src="assets/v2/icon-goggins.svg" alt="" style="left:110px;top:18px">
+        <p class="page__title">Goggins Mode</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:203px;top:29px">Back</button>
+        <div class="page__rule"></div>
+        <p class="confirm__text">Are you sure? This mode is really unforgiving. Your intervals will be randomized, your reps, and quotes will be insulting. There will be cussed. Also, the alarm will be mercyless. This is your last warning!</p>
+        <p class="confirm__hold">Hold <button class="hold" type="button" data-hold="goggins-2">SPACE</button> for 5 seconds to continue.</p>
+      </section>
+
+      <!-- Disable Goggins Mode? -->
+      <section class="page" data-page="goggins-off" style="--h: 215px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon page__icon--narrow" src="assets/v2/icon-goggins.svg" alt="" style="left:110px;top:18px">
+        <p class="page__title">Disable Goggins Mode?</p>
+        <div class="page__rule"></div>
+        <p class="confirm__text">you’re such a fucking pussy if you disable goggins mode.</p>
+        <button class="cool-btn confirm__btn confirm__btn--keep" type="button" data-back>Keep it</button>
+        <button class="cool-btn confirm__btn confirm__btn--off" id="gogginsOffBtn" type="button">Disable</button>
+      </section>
+
+      <!-- Change alarm sound -->
+      <section class="page" data-page="sound" style="--h: 405px">
+        <img class="page__mark" src="assets/v2/icon-sound.svg" alt="" style="left:154px;top:-35px;width:255px;height:262px;transform:rotate(30deg)">
+        <p class="page__eyebrow">be-fit menu</p>
+        <img class="page__icon" src="assets/v2/icon-sound.svg" alt="" style="left:114px;top:16px;height:22px">
+        <p class="page__title">Change Alarm Sound</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:210px;top:27px">Back</button>
+        <div class="page__rule"></div>
+
+        <label class="select-field" style="top:92px">
+          <span class="select-field__label">Default Sound</span>
+          <select class="select" name="sound"></select>
+        </label>
+        <label class="switch-field switch-field--big" style="top:172px">
+          <span class="switch-field__label">Use custom alarm sound?</span>
+          <input class="switch" type="checkbox" name="customSoundOn" role="switch">
+        </label>
+        <div class="custom-sound" id="customSound">
+          <p class="custom-sound__label">Current custom alarm sound:</p>
+          <p class="custom-sound__name" id="customSoundName">none yet</p>
+          <button class="cool-btn custom-sound__edit" id="editSoundBtn" type="button">Edit</button>
+          <input type="file" id="soundFile" accept="audio/*,.mp3" hidden>
+        </div>
+        <p class="toast" id="soundToast" role="status"></p>
+      </section>
+
+      <!-- About/Author -->
+      <section class="page" data-page="about" style="--h: 681px">
+        <img class="page__mark" src="assets/v2/icon-about.svg" alt="" style="left:140px;top:-12px;width:262px;height:262px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <p class="page__title">About/Author</p>
+        <button class="cool-btn page__back" type="button" data-back style="left:203px;top:29px">Back</button>
+        <div class="page__rule"></div>
+
+        <div class="about__text">
+          <p>Be-Fit is a small open-source project that helps you stay active while working or scrolling. Start small: drop 20 push-ups, build discipline.</p>
+          <p>Our mission: bring tech solutions to the fitness world. This is just the beginning – we plan to expand with multiple tools that make fitness accessible, trackable, and unavoidable.</p>
+          <p>Work with us, follow the journey, and help us build a stronger, healthier community. 💪</p>
+        </div>
+        <img class="about__cc" src="assets/v2/corecontrol.png" alt="CoreControl">
+        <p class="about__partof">be-fit is part of:</p>
+        <p class="about__bigger">a yet bigger scaled fitness project.</p>
+        <img class="about__logo" src="icons/128.png" alt="be-fit">
+        <p class="about__founder">Ramandeep Singh<br>Founder</p>
+        <img class="about__photo" src="assets/v2/author.png" alt="Ramandeep Singh">
+        <a class="cool-btn about__join" id="joinBtn" target="_blank" rel="noopener">Join The Family</a>
+        <a class="about__oss" id="ossLink" target="_blank" rel="noopener">btw, we’re open source ;)</a>
+      </section>
+
+      <!-- Randomized Reps Configuration 1/3 · 2/3 · 3/3 -->
+      <section class="page rra" data-page="rra-1" style="--h: 405px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <p class="page__title page__title--2l">Randomized Reps<br>Configuration <span class="rra__step">1/3</span></p>
+        <button class="cool-btn page__back" type="button" data-back style="left:200px;top:39px">Back</button>
+        <div class="page__rule" style="top:92px"></div>
+        <p class="rra__question">What has been your recent MAX push-ups you were able to hit?</p>
+        <p class="rra__note">(Answering accurately will make you benefit more from this extension.)</p>
+        <input class="rra__input" type="number" name="maxPushups" min="1" max="300" value="50" inputmode="numeric">
+        <button class="cool-btn rra__continue" type="button" data-continue="rra-2">Continue</button>
+      </section>
+
+      <section class="page rra" data-page="rra-2" style="--h: 405px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <p class="page__title page__title--2l">Randomized Reps<br>Configuration <span class="rra__step">2/3</span></p>
+        <button class="cool-btn page__back" type="button" data-back style="left:200px;top:39px">Back</button>
+        <div class="page__rule" style="top:92px"></div>
+        <p class="rra__question">How much reps can you hit comfortably?</p>
+        <p class="rra__note">(Answering accurately will make you benefit more from this extension.)</p>
+        <input class="rra__input" type="number" name="comfortable" min="1" max="300" value="20" inputmode="numeric">
+        <button class="cool-btn rra__continue" type="button" data-continue="rra-3">Continue</button>
+      </section>
+
+      <section class="page rra" data-page="rra-3" style="--h: 405px">
+        <p class="page__eyebrow">be-fit menu</p>
+        <p class="page__title page__title--2l">Randomized Reps<br>Configuration <span class="rra__step">3/3</span></p>
+        <button class="cool-btn page__back" type="button" data-back style="left:200px;top:39px">Back</button>
+        <div class="page__rule" style="top:92px"></div>
+        <p class="rra__almost">We’re almost finished. Last question:</p>
+        <p class="rra__question" style="top:165px">How quickly do you recover between push-up sets?</p>
+        <p class="rra__note">(Answering accurately will make you benefit more from this extension.)</p>
+        <label class="diy diy--rra">
+          <input class="diy__input" type="range" name="recovery" min="0" max="3" step="1" value="1" aria-label="Recovery speed">
+          <span class="diy__value" id="recoveryLabel">Quick</span>
+        </label>
+        <button class="cool-btn rra__continue" type="button" data-continue="finish">Continue</button>
+      </section>
+    </div>
+  </main>
+
+  <script src="shared.js"></script>
+  <script src="sound.js"></script>
+  <script src="popup.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>
